@@ -65,8 +65,9 @@ def check_login(page):
         raise ValueError("Estado de login não identificado, talvez a página tenha mudado")
 
 
-def parse_transactions(page):
-    page.goto("https://www.mercadopago.com.br/banking/balance/movements")
+def parse_transactions(page, page_number=None):
+
+    page.goto("https://www.mercadopago.com.br/banking/balance/movements" + (f"?page={page_number}" if page_number else ""))
     page.wait_for_load_state("load")
     # print("acessou transações")
 
@@ -111,19 +112,19 @@ def parse_transactions(page):
             sec_locator = row_el.locator(".andes-list__item-first-column .andes-list__item-secondary")
             description_secondary = sec_locator.text_content() if sec_locator.count() != 0 else ""
 
-            ammount = row_el.locator(".andes-list__item-second-column .andes-money-amount").text_content()
+            amount = row_el.locator(".andes-list__item-second-column .andes-money-amount").text_content()
             time = row_el.locator(".andes-list__item-second-column .binnacle-row__time").text_content().strip()
 
-            ammount = convert_brl_format(ammount)
+            amount = convert_brl_format(amount)
             time = ":".join(time.split("h"))
 
 
-            # print(f"Transacao {j+1}: {description_primary} - {description_secondary} - {ammount} - {time}")
+            # print(f"Transacao {j+1}: {description_primary} - {description_secondary} - {amount} - {time}")
 
             day_data["transactions"].insert(0, {
                 "description_primary": description_primary,
                 "description_secondary": description_secondary,
-                "ammount": ammount,
+                "amount": amount,
                 "time": time
             })
 
@@ -180,14 +181,16 @@ def detect_new_transactions(last_transaction_id, transaction_sample):
 
 def main():
 
-
-    display = Display(visible=0, size=(200, 100))
-    display.start()
+    USE_DISPLAY = False
+    if USE_DISPLAY:
+        display = Display(visible=0, size=(200, 100))
+        display.start()
 
     cfg = ConfigManager(CONFIG_FILE_PATH, DEFAUTL_CONFIG)
     cfg.load()
 
     refresh_period = 10*1000
+    refresh_period = 1
 
     print("Iniciando navegador...")
     with sync_playwright() as p:
@@ -213,9 +216,11 @@ def main():
 
         print("login está feito")
 
-        # cfg.last_transaction_id = None
+        cfg.last_transaction_id = '2022-01-01:1'
 
         skip_first = True
+
+        page_number = 14
 
         while True:
 
@@ -224,33 +229,40 @@ def main():
             else:
                 page.wait_for_timeout(refresh_period)
 
-            new_transactions_sample = parse_transactions(page)
+            new_transactions_sample = parse_transactions(page, page_number)
+            page_number -= 1
+            if page_number <= 0:
+                break
             # print("Transações coletadas com sucesso")
             # print(new_transactions_sample)
 
-            if cfg.last_transaction_id is None:
-                new_transactions = []
-                cfg.last_transaction_id = get_last_transaction_id(new_transactions_sample)
-                print("Não há id de transação anterior, coletando novas à partir de agora")
-                continue
-            else:
-                new_transactions = detect_new_transactions(cfg.last_transaction_id, new_transactions_sample)
+            # if cfg.last_transaction_id is None:
+            #     new_transactions = []
+            #     cfg.last_transaction_id = get_last_transaction_id(new_transactions_sample)
+            #     print("Não há id de transação anterior, coletando novas à partir de agora")
+            #     continue
+            # else:
+            #     new_transactions = detect_new_transactions(cfg.last_transaction_id, new_transactions_sample)
+            new_transactions = new_transactions_sample
 
             if len(new_transactions) == 0:
                 print("Nenhuma nova transação detectada")
                 continue
 
             print(f"\n{len(new_transactions)} novas transações detectadas:")
-            for day_data in new_transactions:
-                print(f"\nDia: {day_data['day_date']}, Saldo parcial: R${day_data['day_partial_balance']:.2f}")
-                for transaction in day_data['transactions']:
-                    print(f"  - {transaction['description_primary']} {transaction['description_secondary']} "
-                        f"R${transaction['ammount']:.2f} {transaction['time']}")
+            print(new_transactions)
+            # for day_data in new_transactions:
+            #     print(f"\nDia: {day_data['day_date']}, Saldo parcial: R${day_data['day_partial_balance']:.2f}")
+            #     for transaction in day_data['transactions']:
+            #         print(f"  - {transaction['description_primary']} {transaction['description_secondary']} "
+            #             f"R${transaction['amount']:.2f} {transaction['time']}")
                     
             cfg.last_transaction_id = get_last_transaction_id(new_transactions_sample)
 
         ctx.close()
-    display.stop()
+
+    if USE_DISPLAY:
+        display.stop()
 
 
 if __name__ == "__main__":
