@@ -7,9 +7,11 @@ from encode_name import encode_name
 import helper_functions
 from TelegramManager import TelegramManager
 
-SPREADSHEET_ID = "1AM29wtnBMGiSrxmCxaQ-DQIKUmWNENG-mUrIuYqBzWo"
+# SPREADSHEET_ID = "1AM29wtnBMGiSrxmCxaQ-DQIKUmWNENG-mUrIuYqBzWo"
+SPREADSHEET_ID = "1_6SqiYR3QugImRQRMfupSmkUT7w-pgIXj3qiKLrV378"
 CREDENTIALS_FILE = "data/google_sheet_key.json"
-REFRESH_PERIOD = 3600
+# REFRESH_PERIOD = 3600 # 1h
+REFRESH_PERIOD = 60   # 1m
 
 def main():
 
@@ -448,8 +450,8 @@ def main():
         print('processed_earnings', processed_earnings)
         print('\n')
         
-        # handle_processed_deposits(processed_deposits)
-        # handle_processed_earnings(processed_earnings)
+        handle_processed_deposits(processed_deposits)
+        handle_processed_earnings(processed_earnings)
         handle_processed_trackings(processed_trackings)
             
 

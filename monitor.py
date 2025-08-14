@@ -34,22 +34,22 @@ class PageMonitor:
 
     def _run(self):
 
-        # testing:
-        time.sleep(2)
-        data = [
-            {'day_date': '2025-07-25', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 100, 'time': '07:00'}]},
-            {'day_date': '2025-08-01', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Transferência recebida', 'description_secondary': 'Artur Zahn', 'amount': 4.0, 'time': '00:33'}, {'description_primary': 'Transferência recebida', 'description_secondary': 'Artur Zahn', 'amount': 4.0, 'time': '00:33'}, {'description_primary': 'Transferência recebida', 'description_secondary': 'ninguem', 'amount': 5.0, 'time': '00:33'}, {'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 0.79, 'time': '07:00'}, {'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 1, 'time': '07:00'}]},
-            {'day_date': '2025-08-02', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 10, 'time': '07:00'}]},
-        ]
+        # # testing:
+        # time.sleep(2)
+        # data = [
+        #     {'day_date': '2025-07-25', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 100, 'time': '07:00'}]},
+        #     {'day_date': '2025-08-01', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Transferência recebida', 'description_secondary': 'Artur Zahn', 'amount': 4.0, 'time': '00:33'}, {'description_primary': 'Transferência recebida', 'description_secondary': 'Artur Zahn', 'amount': 4.0, 'time': '00:33'}, {'description_primary': 'Transferência recebida', 'description_secondary': 'ninguem', 'amount': 5.0, 'time': '00:33'}, {'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 0.79, 'time': '07:00'}, {'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 1, 'time': '07:00'}]},
+        #     {'day_date': '2025-08-02', 'day_partial_balance': 1748.84, 'transactions': [{'description_primary': 'Rendimentos', 'description_secondary': '', 'amount': 10, 'time': '07:00'}]},
+        # ]
         
-        try:
-            self.on_new_data(data)
-        except Exception as e:
-            print(f"Error in on_new_data handler: {e}")
+        # try:
+        #     self.on_new_data(data)
+        # except Exception as e:
+        #     print(f"Error in on_new_data handler: {e}")
         
-        while not self._stop.is_set():
-            time.sleep(1)
-        return
+        # while not self._stop.is_set():
+        #     time.sleep(1)
+        # return
 
         if HIDE_WINDOW:
             display = Display(visible=0, size=(200, 100))
