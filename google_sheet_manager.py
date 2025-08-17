@@ -72,7 +72,7 @@ class GoogleSheetManager:
         self.logc(f'add_erarning {date} {amount} {description}')
     
     def insert_tracking(self, date, amount, description, category):
-        self.ws_tracking.append_row([date, amount, description, category], value_input_option="USER_ENTERED")
+        self.ws_tracking.append_row([date, amount, description, category, 'bot'], value_input_option="USER_ENTERED")
         self.logc(f'insert_tracking {date} {amount} {description} {category}')
 
     def update_tracking(self, row_number, category, description):
