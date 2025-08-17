@@ -39,10 +39,11 @@ token = cfg.token
 SET_CATEGORY_CHAT_PATTERN = re.compile(r"^/set_category_chat\s+(?P<password>.+)\s*$")
 
 class TelegramManager(TelegramManagerCore):
-    def __init__(self):
+    def __init__(self, logc):
         super().__init__(token)
 
         self.category_options = ['Categorias não foram carregadas']
+        self.logc = logc
 
     def set_handlers(self):
         

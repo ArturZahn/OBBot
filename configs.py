@@ -147,7 +147,6 @@ class ConfigManager:
 
     # ----- public API -----
     def load(self):
-        print("opa")
         config_path = Path(self._file_path)
         # start from defaults
         base = copy.deepcopy(self._default_configs)

@@ -16,11 +16,11 @@ DEFAUTL_CONFIG = {
 }
 
 class PageMonitor:
-    def __init__(self, refresh_period_is_sec):
+    def __init__(self, refresh_period_in_sec):
         # self.interval    = 2
         self._thread     = threading.Thread(target=self._run, daemon=True)
         self._stop       = threading.Event()
-        self.refresh_period = refresh_period_is_sec*1000
+        self.refresh_period = refresh_period_in_sec*1000
 
     def set_on_new_data(self, on_new_data):
         self.on_new_data = on_new_data

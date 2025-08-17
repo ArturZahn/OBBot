@@ -13,36 +13,24 @@ CREDENTIALS_FILE = "data/google_sheet_key.json"
 # REFRESH_PERIOD = 3600 # 1h
 REFRESH_PERIOD = 60   # 1m
 
+log_file = f"logs/log {str(datetime.now()).replace(':', '-')}.txt"
+def logc(msg):
+    arquivo = open(log_file, "a")
+    arquivo.write(str(datetime.now())+' - '+str(msg)+'\n')
+    print(str(datetime.now()), '-', msg)
+    arquivo.close()
+
 def main():
 
-    print("Starting telegram bot")
-    tm = TelegramManager()
-    tm.start()
-    tm.set_category_options([
-        'Depósito',
-        'Oséas',
-        'Internet',
-        'Piscina',
-        'Gás',
-        'Vigia',
-        'Mercado mistura',
-        'Mercado geral',
-        'Água',
-        'Luz',
-        'Cachorro',
-        'Manutenção',
-        'Rendimento',
-        'Outros',
-        'Aluguel marcos',
-        'Caixinha',
-    ])
+    print("Starting google sheet...")
+    gs_man = GoogleSheetManager(SPREADSHEET_ID, CREDENTIALS_FILE, logc)
     print("Started")
 
-    print("Starting google sheet...")
-    gs_man = GoogleSheetManager(SPREADSHEET_ID, CREDENTIALS_FILE)
+    print("Starting telegram bot")
+    tm = TelegramManager(logc)
+    tm.start()
+    tm.set_category_options(gs_man.categories)
     print("Started")
-    # gs_man.insert_deposit('Bytos', '01/08/2025', 99.0, 'oi')
-    # gs_man.insert_tracking('01/08/2025', 99.0, 'Test Description', 'Test Category')
 
     monitor = PageMonitor(REFRESH_PERIOD)
 
@@ -115,7 +103,8 @@ def main():
             # print('current', current_deposits[nickname])
             # print('date', date)
 
-            print(f'\n\nchecking deposit {nickname} {date} R${amount:.2f}')
+            # print(f'\n\nchecking deposit {nickname} {date} R${amount:.2f}')
+            logc(f'checking deposit {nickname} {date} R${amount:.2f}')
 
             found = False
             flag1 = False # this flag will be set if found in the sheet an deposit with the same amount, but the status in already filled or the description is not what is expected
@@ -123,7 +112,7 @@ def main():
             if nickname in current_deposits and date in current_deposits[nickname]:
                 for current_deposit in current_deposits[nickname][date]:
                     if current_deposit['amount'] == amount:
-                        print('amount is equal')
+                        # print('amount is equal')
 
                         if current_deposit['status'] == 'bot OK':
                             continue # was aded by the bot, so could not be this one
@@ -136,23 +125,27 @@ def main():
                                 current_deposit['description'] == ''
                             )
                         ):
-                            print('should be this one', current_deposit)
+                            # print('should be this one', current_deposit)
                             current_deposit['description'] = 'Depósito na conta da casa'
                             current_deposit['status'] = 'bot Ok'
                             current_deposit['category'] = 'Depósito'
-                            gs_man.confirm_deposit(current_deposit['row'], )
+                            gs_man.confirm_deposit(current_deposit['row'])
+                            logc(f'confirm line {current_deposit["row"]}')
                             found = True
                             break
                         else:
                             print('but status is filled or description is wrong, continue searching')
+                            logc('but status is filled or description is wrong, continue searching')
                             flag1 = True
                 if found: continue
 
             if flag1:
                 # TODO: alert this to the user:
                 print('ALERT! new deposit on bank was on sheet, with \'status\' field filled')
+                logc('ALERT! new deposit on bank was on sheet, with \'status\' field filled')
 
             print(f'insert deposit')
+            logc(f'inserting deposit {nickname} {date} {amount}')
             gs_man.insert_deposit(nickname, date, amount)
 
     def get_trackings():
@@ -241,9 +234,11 @@ def main():
                 if encode_name(description) == month_str_enc:
                     if category == 'Rendimento':
                         gs_man.update_earning(tracking['row'], amount+tracking['amount'])
+                        logc(f"updating tracking {tracking['row']} {amount+tracking['amount']}")
                         break
             else:
                 gs_man.add_erarning('01/'+mstr, amount, month_str)
+                logc(f"add earning {'01/'+mstr} {amount} {month_str}")
 
     
 
@@ -287,13 +282,16 @@ def main():
             if check:
                 check_id = new_id()
                 tm.send_category_msg(description, amount, check_id)
+                logc(f"sending cat message {date} {amount} {description} {category}")
                 description += f' check#{check_id}'
 
             gs_man.insert_tracking(date, amount, description, category)
+            logc(f"inserting tracking {date} {amount} {description} {category}")
 
 
     def on_finished_categorize(check_id, category, description):
         print(f"received categorized:\nid: {check_id}\ncat: {category}\ndesc: {description}")
+        logc(f"on_finished_categorize {check_id} {category} {description}")
 
         current_trackings = get_trackings()
         
@@ -301,9 +299,11 @@ def main():
             curr_id = helper_functions.extract_check_id(tracking['description'])
             if curr_id is not None and curr_id == check_id:
                 gs_man.update_tracking(tracking['row'], category, description)
+                logc(f"updating tracking {tracking['row']} {category} {description}")
                 break
         else:
             print(f"did not found tracking with check id {check_id}")
+            logc(f"did not found tracking with check id {check_id}")
 
             
 

@@ -9,10 +9,11 @@ SCOPES = [
 ]
 
 class GoogleSheetManager:
-    def __init__(self, spreadsheet_id, credentials_file):
+    def __init__(self, spreadsheet_id, credentials_file, logc):
         self.creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, SCOPES)
         self.gc = gspread.authorize(self.creds)
-        
+        self.logc = logc
+
         self.spreadsheet_id = spreadsheet_id
         self.sh = self.gc.open_by_key(spreadsheet_id)
         self.ws_config = self.sh.worksheet("Configurações")
@@ -50,10 +51,12 @@ class GoogleSheetManager:
 
     def insert_deposit(self, nickname, date, amount):
         self.ws_deposit.append_row([nickname, date, amount, 'Depósito na conta da casa', 'bot Ok', 'Depósito'], value_input_option="USER_ENTERED")
+        self.logc(f'insert_deposit {nickname} {date} {amount}')
     
     def confirm_deposit(self, row_number):
         new_values = ['Depósito na conta da casa', 'bot Ok', 'Depósito']
         self.ws_deposit.update(f"D{row_number}:F{row_number}", [new_values], value_input_option="USER_ENTERED")
+        self.logc(f'confirm_deposit {row_number}')
 
     def get_trackings(self):
         # return self.ws_tracking.get_all_records(expected_headers=['Data', 'Valor', 'Descrição', 'Categoria', 'Fonte (de onde veio esse dado)', 'Controle'])
@@ -61,16 +64,20 @@ class GoogleSheetManager:
     
     def update_earning(self, row_number, amount):
         new_values = [amount]
+        self.logc(f'update_earning {row_number} {amount}')
         return self.ws_tracking.update(f"B{row_number}:B{row_number}", [new_values], value_input_option="USER_ENTERED")
     
     def add_erarning(self, date, amount, description):
         self.ws_tracking.append_row([date, amount, description, 'Rendimento', 'bot'], value_input_option="USER_ENTERED")
+        self.logc(f'add_erarning {date} {amount} {description}')
     
     def insert_tracking(self, date, amount, description, category):
         self.ws_tracking.append_row([date, amount, description, category], value_input_option="USER_ENTERED")
+        self.logc(f'insert_tracking {date} {amount} {description} {category}')
 
     def update_tracking(self, row_number, category, description):
         new_values = [description, category]
+        self.logc(f'update_tracking {row_number} {category} {description}')
         return self.ws_tracking.update(f"C{row_number}:D{row_number}", [new_values], value_input_option="USER_ENTERED")
 
     # def handle_new_transactions(self, new_transactions):
