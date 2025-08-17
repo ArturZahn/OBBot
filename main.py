@@ -10,8 +10,8 @@ from TelegramManager import TelegramManager
 # SPREADSHEET_ID = "1AM29wtnBMGiSrxmCxaQ-DQIKUmWNENG-mUrIuYqBzWo"
 SPREADSHEET_ID = "1_6SqiYR3QugImRQRMfupSmkUT7w-pgIXj3qiKLrV378"
 CREDENTIALS_FILE = "data/google_sheet_key.json"
-# REFRESH_PERIOD = 3600 # 1h
-REFRESH_PERIOD = 60   # 1m
+REFRESH_PERIOD = 3600 # 1h
+# REFRESH_PERIOD = 60   # 1m
 
 log_file = f"logs/log {str(datetime.now()).replace(':', '-')}.txt"
 def logc(msg):
@@ -22,15 +22,15 @@ def logc(msg):
 
 def main():
 
-    print("Starting google sheet...")
+    logc("Starting google sheet...")
     gs_man = GoogleSheetManager(SPREADSHEET_ID, CREDENTIALS_FILE, logc)
-    print("Started")
+    logc("Started")
 
-    print("Starting telegram bot")
+    logc("Starting telegram bot")
     tm = TelegramManager(logc)
     tm.start()
     tm.set_category_options(gs_man.categories)
-    print("Started")
+    logc("Started")
 
     monitor = PageMonitor(REFRESH_PERIOD)
 
@@ -457,10 +457,10 @@ def main():
 
             
     
-    print("Starting MP monitor")
+    logc("Starting MP monitor")
     monitor.set_on_new_data(on_new_data)
     monitor.start()
-    print("Started")                
+    logc("Started")                
             
 
     tm.set_on_finished_categorize_function(on_finished_categorize)
@@ -474,11 +474,11 @@ def main():
             # e.g. a CLI, HTTP server, other tasks…
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Stopping…")
+        logc("Stopping…")
     finally:
         # 4) Clean up
         monitor.stop()
-        print("Monitor stopped, exiting.")
+        logc("Monitor stopped, exiting.")
 
 if __name__ == "__main__":
     main()
