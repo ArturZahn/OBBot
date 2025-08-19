@@ -254,14 +254,38 @@ class TelegramManager(TelegramManagerCore):
         desc = payl['desc']
         amount = payl['amount']
 
+        nickname = None
+        aditional_desc = ''
+        if option == 'Depósito':
+            orig_desc = payl['orig_desc']
+            try:
+                name = orig_desc.split(':')[1]
+            except IndexError:
+                name = ""
+            if name == "":
+                aditional_desc = (
+                    "\n⚠️ *Atenção, gasto NÂO foi inserido como depósito!*\n"
+                    f"Não consegui extrair o nome da descrição '{orig_desc}'.\n"
+                )
+            else:
+                nickname = self._check_nickname_from_name(name)
+                if nickname is None:
+                    aditional_desc = (
+                        "\n⚠️ *Atenção, gasto NÂO foi inserido como depósito!*\n"
+                        f"Não consegui encontrar o nome '{name}' na lista de apelidos.\n"
+                    )
+
         # delete the options message
         with contextlib.suppress(Exception):
             await q.message.delete()
 
         # final message only (as you requested)
-        await q.message.chat.send_message(f"Gasto categorizado ✅\nR${amount:.2f} - {option}\n{desc}\n")
+        if nickname is None:
+            await q.message.chat.send_message(f"Gasto categorizado ✅\nR${amount:.2f} - {option}\n{desc}\n{aditional_desc}")
+        else:
+            await q.message.chat.send_message(f"Gasto inserido como depósito ✅\n {nickname} R${amount:.2f}\n")
 
-        self._on_finished_categorize(check_id, option, desc)
+        self._on_finished_categorize(check_id, option, desc, nickname)
 
         del cfg.cat_msgs[check_id]
         context.user_data.clear()
@@ -299,8 +323,9 @@ class TelegramManager(TelegramManagerCore):
 
     ##########################################################################################################################
 
-    def set_on_finished_categorize_function(self, on_finished_categorize):
+    def set_functions(self, on_finished_categorize, check_nickname_from_name):
         self._on_finished_categorize = on_finished_categorize
+        self._check_nickname_from_name = check_nickname_from_name
 
         
         

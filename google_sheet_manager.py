@@ -79,6 +79,12 @@ class GoogleSheetManager:
         new_values = [description, category]
         self.logc(f'update_tracking {row_number} {category} {description}')
         return self.ws_tracking.update(f"C{row_number}:D{row_number}", [new_values], value_input_option="USER_ENTERED")
+    
+    def delete_tracking(self, row):
+        new_values = ['', '', 'removed', '']
+        self.logc(f'remove_tracking {row}')
+        return self.ws_tracking.update(f"A{row}:D{row}", [new_values], value_input_option="USER_ENTERED")
+        
 
     # def handle_new_transactions(self, new_transactions):
 

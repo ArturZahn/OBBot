@@ -289,7 +289,7 @@ def main():
             logc(f"inserting tracking {date} {amount} {description} {category}")
 
 
-    def on_finished_categorize(check_id, category, description):
+    def on_finished_categorize(check_id, category, description, nickname=None):
         print(f"received categorized:\nid: {check_id}\ncat: {category}\ndesc: {description}")
         logc(f"on_finished_categorize {check_id} {category} {description}")
 
@@ -298,14 +298,26 @@ def main():
         for tracking in current_trackings:
             curr_id = helper_functions.extract_check_id(tracking['description'])
             if curr_id is not None and curr_id == check_id:
-                gs_man.update_tracking(tracking['row'], category, description)
-                logc(f"updating tracking {tracking['row']} {category} {description}")
+                if category == 'Depósito' and nickname is not None:
+                    gs_man.delete_tracking(tracking['row'])
+                    gs_man.insert_deposit(nickname, tracking['date'], tracking['amount'])
+                    logc(f"inserted as deposit {nickname} {category} {description}")
+                else:
+                    gs_man.update_tracking(tracking['row'], category, description)
+                    logc(f"updating tracking {tracking['row']} {category} {description}")
                 break
         else:
             print(f"did not found tracking with check id {check_id}")
             logc(f"did not found tracking with check id {check_id}")
 
-            
+    def check_nickname_from_name(name):
+        gs_man.get_payment_names()
+        names_to_nicknames = gs_man.payment_names_to_nicknames
+        name = encode_name(name)
+        if name not in names_to_nicknames:
+            return None
+        
+        return names_to_nicknames[name]
 
     def on_new_data(new_transactions):
         print('inserting new transactions into Google Sheets')
@@ -463,7 +475,7 @@ def main():
     logc("Started")                
             
 
-    tm.set_on_finished_categorize_function(on_finished_categorize)
+    tm.set_functions(on_finished_categorize, check_nickname_from_name)
 
 
     time.sleep(2)
