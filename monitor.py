@@ -152,7 +152,7 @@ class PageMonitor:
         elif page.locator("text=Iniciar sessão").count() > 0:
             raise ValueError("Login necessário, rode o script de login")
 
-        elif not page.locator("text=Sua última atividade").count() > 0:
+        elif not page.locator("text=Últimas atividades").count() > 0:
             print("estado de login não identificado, talvez a pagina tenha mudado")
             raise ValueError("Estado de login não identificado, talvez a página tenha mudado")
 

@@ -462,9 +462,13 @@ def main():
         print('processed_earnings', processed_earnings)
         print('\n')
         
+        print('Handling deposits...')
         handle_processed_deposits(processed_deposits)
+        print('Handling earnings...')
         handle_processed_earnings(processed_earnings)
+        print('Handling trackings...')
         handle_processed_trackings(processed_trackings)
+        print('All done!\n\n')
             
 
             

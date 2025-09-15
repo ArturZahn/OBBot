@@ -11,7 +11,7 @@ def fazer_login():
         )
         page = ctx.new_page()
         page.goto("https://www.mercadopago.com.br/home")
-        page.wait_for_selector("text=Sua última atividade", timeout=5*60*1000)
+        page.wait_for_selector("text=Últimas atividades", timeout=5*60*1000)
         print("Login feito com sucesso")
         ctx.close()
 
