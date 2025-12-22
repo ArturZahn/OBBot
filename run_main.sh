@@ -29,14 +29,16 @@ fi
 # Calculate the time difference in days
 TIME_DIFF=$(( (NOW - LAST_RUN_TIME) / 86400 ))
 
-# If it has been 4 or more days, run the script
-if [ "$TIME_DIFF" -ge 4 ]; then
+# If it has been 1 or more days, run the script
+if [ "$TIME_DIFF" -ge 1 ]; then
     echo "Running main.py at $(date)" >> "$LOG_FILE"
+    source myenv/bin/activate
     python3 "$MAIN_SCRIPT_PATH" >> "$LOG_FILE" 2>&1
     # Update the last run time only if the script ran successfully
-    if [ $? -eq 0 ]; then
-        echo "$NOW" > "$LAST_RUN_FILE"
-    else
-        echo "main.py failed to run." >> "$LOG_FILE"
-    fi
+    # if [ $? -eq 0 ]; then
+    #     echo "$NOW" > "$LAST_RUN_FILE"
+    # else
+    #     echo "main.py failed to run." >> "$LOG_FILE"
+    # fi
+    echo "$NOW" > "$LAST_RUN_FILE"
 fi

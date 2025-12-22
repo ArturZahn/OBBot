@@ -489,6 +489,9 @@ def main():
         while True:
             # e.g. a CLI, HTTP server, other tasks…
             time.sleep(1)
+            if monitor.got_error:
+                logc("Monitor had an error, stopping...")
+                exit(1)
     except KeyboardInterrupt:
         logc("Stopping…")
     finally:

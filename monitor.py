@@ -21,6 +21,7 @@ class PageMonitor:
         self._thread     = threading.Thread(target=self._run, daemon=True)
         self._stop       = threading.Event()
         self.refresh_period = refresh_period_in_sec*1000
+        self.got_error = False
 
     def set_on_new_data(self, on_new_data):
         self.on_new_data = on_new_data
@@ -86,54 +87,59 @@ class PageMonitor:
 
             skip_first = True
 
-            while not self._stop.is_set():
+            try:
 
-                if skip_first:
-                    skip_first = False
-                else:
-                    page.wait_for_timeout(refresh_period)
+                while not self._stop.is_set():
 
-                new_transactions_sample = self.parse_transactions(page)
-                # print("Transações coletadas com sucesso")
-                # print(new_transactions_sample)
+                    if skip_first:
+                        skip_first = False
+                    else:
+                        page.wait_for_timeout(refresh_period)
 
-                if cfg.last_transaction_id is None:
-                    new_transactions = []
+                    new_transactions_sample = self.parse_transactions(page)
+                    # print("Transações coletadas com sucesso")
+                    # print(new_transactions_sample)
+
+                    if cfg.last_transaction_id is None:
+                        new_transactions = []
+                        cfg.last_transaction_id = self.get_last_transaction_id(new_transactions_sample)
+                        print("Não há id de transação anterior, coletando novas à partir de agora")
+                        continue
+                    else:
+                        new_transactions = self.detect_new_transactions(cfg.last_transaction_id, new_transactions_sample)
+
+                    if len(new_transactions) == 0:
+                        print("Nenhuma nova transação detectada")
+                        continue
+
+                    print(f"\n{len(new_transactions)} novas transações detectadas:")
+                    for day_data in new_transactions:
+                        print(f"\nDia: {day_data['day_date']}, Saldo parcial: R${day_data['day_partial_balance']:.2f}")
+                        for transaction in day_data['transactions']:
+                            print(f"  - {transaction['description_primary']} {transaction['description_secondary']} "
+                                f"R${transaction['amount']:.2f} {transaction['time']}")
+                            
+                    try:
+                        self.on_new_data(new_transactions)
+                    except Exception as e:
+                        print(f"Error in on_new_data handler: {e}")
+
                     cfg.last_transaction_id = self.get_last_transaction_id(new_transactions_sample)
-                    print("Não há id de transação anterior, coletando novas à partir de agora")
-                    continue
-                else:
-                    new_transactions = self.detect_new_transactions(cfg.last_transaction_id, new_transactions_sample)
-
-                if len(new_transactions) == 0:
-                    print("Nenhuma nova transação detectada")
-                    continue
-
-                print(f"\n{len(new_transactions)} novas transações detectadas:")
-                for day_data in new_transactions:
-                    print(f"\nDia: {day_data['day_date']}, Saldo parcial: R${day_data['day_partial_balance']:.2f}")
-                    for transaction in day_data['transactions']:
-                        print(f"  - {transaction['description_primary']} {transaction['description_secondary']} "
-                            f"R${transaction['amount']:.2f} {transaction['time']}")
-                        
-                try:
-                    self.on_new_data(new_transactions)
-                except Exception as e:
-                    print(f"Error in on_new_data handler: {e}")
-
-                cfg.last_transaction_id = self.get_last_transaction_id(new_transactions_sample)
 
 
-                # print("hmmm")
-                # pkg = {"dummy data": "example"}
-                # try:
-                #     self.on_new_data(pkg)
-                # except Exception:
-                #     pass  # don’t let handler exceptions kill the loop
-                # time.sleep(self.interval)
-
-            
-            ctx.close()
+                    # print("hmmm")
+                    # pkg = {"dummy data": "example"}
+                    # try:
+                    #     self.on_new_data(pkg)
+                    # except Exception:
+                    #     pass  # don’t let handler exceptions kill the loop
+                    # time.sleep(self.interval)
+                    
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                if e.args[0] == 'Page.wait_for_timeout: Target page, context or browser has been closed':
+                    ctx.close()
+                    self.got_error = True
 
         if HIDE_WINDOW:
             display.stop()
