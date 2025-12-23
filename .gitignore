@@ -1,5 +1,14 @@
-/data
-/mp_profile
-/myenv
-/__pycache__
-/logs
+# old files and directories
+old/data/
+old/mp_profile/
+old/myenv/
+old/__pycache__/
+old/logs/
+
+# new project
+/data/
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
